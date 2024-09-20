@@ -14,27 +14,23 @@ def fetch_html(url: str) -> str:
 
 # Function to extract table data
 def extract_table_data(html_content: str):
-       soup = BeautifulSoup(html_content, 'html.parser')
-       table = soup.find('table', class_='wilko')
+        soup = BeautifulSoup(html_content, 'html.parser')
+        table = soup.find('table', class_='wilko')
 
-       # Find all rows in the table body
-       rows = table.find_all('tr')
+        table_header = table.find("thead")
+        headers = [th.text.strip() for th in table_header.find_all('th')]
 
-       data = []
-       headers = []
+        table_body = table.find("tbody")
+        rows = table_body.find_all('tr')
+        data = []
 
-       # Get the table headers
-       header_row = rows[0]
-       headers = [th.text.strip() for th in header_row.find_all('th') if th.text.strip()]
-
-       # Iterate over the rows and extract data
-       for row in rows[1:]:
-              cells = row.find_all('td')
-              row_data = []
+        for row in rows[1:]:
+            cells = row.find_all('td')
+            row_data = []
 
               # Extract each cell's text, cleaning any unwanted characters
               for cell in cells:
-                     text = cell.text.strip().replace('–', 'N/A').replace('\xa0', ' ')
+                     text = cell.text.strip().replace('–', ' ').replace('\xa0', ' ')
                      row_data.append(text)
 
               # Append the row to the data list if it's not empty
