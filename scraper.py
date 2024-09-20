@@ -42,10 +42,10 @@ def extract_table_data(html_content: str):
 
 
 for url in urls:
-        html = fetch_html(url)
-        # Call the function and print the DataFrame
-        df = extract_table_data(html)
-        print(df)
+       html = fetch_html(url)
+       # Call the function and print the DataFrame
+       df = extract_table_data(html)
+       print(df)
 
        # Optionally, save to CSV
        df.to_csv('table_data.csv', index=False)
