@@ -14,44 +14,38 @@ def fetch_html(url: str) -> str:
 
 # Function to extract table data
 def extract_table_data(html_content: str):
-       soup = BeautifulSoup(html_content, 'html.parser')
-       table = soup.find('table', class_='wilko')
+        soup = BeautifulSoup(html_content, 'html.parser')
+        table = soup.find('table', class_='wilko')
 
-       # Find all rows in the table body
-       rows = table.find_all('tr')
+        table_header = table.find("thead")
+        headers = [th.text.strip() for th in table_header.find_all('th')]
 
-       data = []
-       headers = []
+        table_body = table.find("tbody")
+        rows = table_body.find_all('tr')
+        data = []
 
-       # Get the table headers
-       header_row = rows[0]
-       headers = [th.text.strip() for th in header_row.find_all('th') if th.text.strip()]
+        for row in rows[1:]:
+            cells = row.find_all('td')
+            row_data = []
 
-       # Iterate over the rows and extract data
-       for row in rows[1:]:
-              cells = row.find_all('td')
-              row_data = []
+            for cell in cells:
+                text = cell.text.strip().replace('–', ' ').replace('\xa0', ' ')
+                row_data.append(text)
 
-              # Extract each cell's text, cleaning any unwanted characters
-              for cell in cells:
-                     text = cell.text.strip().replace('–', 'N/A').replace('\xa0', ' ')
-                     row_data.append(text)
+            if row_data:
+                data.append(row_data)
 
-              # Append the row to the data list if it's not empty
-              if row_data:
-                     data.append(row_data)
+        # Create a Pandas DataFrame for easy manipulation
+        df = pd.DataFrame(data, columns=headers[:len(data[0])])
 
-       # Create a Pandas DataFrame for easy manipulation
-       df = pd.DataFrame(data, columns=headers[:len(data[0])])
-
-       return df
+        return df
 
 
 for url in urls:
-       html = fetch_html(url)
-       # Call the function and print the DataFrame
-       df = extract_table_data(html)
-       print(df)
+        html = fetch_html(url)
+        # Call the function and print the DataFrame
+        df = extract_table_data(html)
+        print(df)
 
        # Optionally, save to CSV
        df.to_csv('table_data.csv', index=False)
