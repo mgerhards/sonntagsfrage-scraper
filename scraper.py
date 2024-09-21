@@ -28,19 +28,17 @@ def extract_table_data(html_content: str):
             cells = row.find_all('td')
             row_data = []
 
-              # Extract each cell's text, cleaning any unwanted characters
-              for cell in cells:
-                     text = cell.text.strip().replace('–', ' ').replace('\xa0', ' ')
-                     row_data.append(text)
+            for cell in cells:
+                text = cell.text.strip().replace('–', ' ').replace('\xa0', ' ')
+                row_data.append(text)
 
-              # Append the row to the data list if it's not empty
-              if row_data:
-                     data.append(row_data)
+            if row_data:
+                data.append(row_data)
 
-       # Create a Pandas DataFrame for easy manipulation
-       df = pd.DataFrame(data, columns=headers[:len(data[0])])
+        # Create a Pandas DataFrame for easy manipulation
+        df = pd.DataFrame(data, columns=headers[:len(data[0])])
 
-       return df
+        return df
 
 
 for url in urls:
