@@ -42,10 +42,22 @@ def extract_table_data(html_content: str):
 
 data = None
 
+def get_organization_from_url(s_url):
+    base_url = "https://www.wahlrecht.de/umfragen/"
+    rest = s_url.replace(base_url, "")
+    parts = rest.split('/')
+    org_name = parts[0]
+    # Remove '.htm' or '.html' extensions if present
+    org_name = org_name.replace('.htm', '').replace('.html', '')
+    return org_name
+
 for url in urls[:3]:
+    org = get_organization_from_url(url)
+
     html = fetch_html(url)
     # Call the function and print the DataFrame
     df = extract_table_data(html)
+    df["org"] = org
     print(df)
     if data is not None:
         data= pd.concat([data, df])
