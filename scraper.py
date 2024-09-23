@@ -29,7 +29,7 @@ def extract_table_data(html_content: str):
             row_data = []
 
             for cell in cells:
-                text = cell.text.strip().replace('–', ' ').replace('\xa0', ' ').replace('%', '').replace(',','.')
+                text = cell.text.strip().replace('–', ' ').replace('\xa0', ' ')
                 row_data.append(text)
 
             if row_data:
