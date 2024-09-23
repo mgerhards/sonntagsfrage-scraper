@@ -29,7 +29,7 @@ def extract_table_data(html_content: str):
             row_data = []
 
             for cell in cells:
-                text = cell.text.strip().replace('–', ' ').replace('\xa0', ' ')
+                text = cell.text.strip().replace('–', ' ').replace('\xa0', ' ').replace('%','').replace(',','.')
                 row_data.append(text)
 
             if row_data:
@@ -40,13 +40,19 @@ def extract_table_data(html_content: str):
 
         return df
 
+data = None
 
-for url in urls:
-       html = fetch_html(url)
-       # Call the function and print the DataFrame
-       df = extract_table_data(html)
-       print(df)
+for url in urls[:3]:
+    html = fetch_html(url)
+    # Call the function and print the DataFrame
+    df = extract_table_data(html)
+    print(df)
+    if data is not None:
+        data= pd.concat([data, df])
+    else:
+        data = df
 
-       # Optionally, save to CSV
-       df.to_csv('table_data.csv', index=False)
-       break
+print(data)
+
+# Optionally, save to CSV
+data.to_pickle('Sonntagsfrage.pkl', index=False)
