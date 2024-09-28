@@ -51,7 +51,7 @@ def get_organization_from_url(s_url):
     org_name = org_name.replace('.htm', '').replace('.html', '')
     return org_name
 
-for url in urls[:3]:
+for url in urls:
     org = get_organization_from_url(url)
 
     html = fetch_html(url)
