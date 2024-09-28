@@ -58,6 +58,9 @@ for url in urls[:3]:
     # Call the function and print the DataFrame
     df = extract_table_data(html)
     df["org"] = org
+    df = df.reset_index(name='datum')
+    df = df.set_index(['datum', 'org'])
+
     print(df)
     if data is not None:
         data= pd.concat([data, df])
