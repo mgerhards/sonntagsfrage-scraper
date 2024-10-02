@@ -4,6 +4,9 @@ from bs4 import BeautifulSoup
 import pandas as pd
 
 def fetch_html(url: str) -> str:
+    if not url:
+        raise ValueError("The URL must not be null or empty")
+
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -19,7 +22,8 @@ def extract_table_data(html_content: str):
 
         table_header = table.find("thead")
         headers = [th.text.strip() for th in table_header.find_all('th')]
-
+        # handle empty headers
+        headers = [f"Unnamed_{i}" if not col else col for i, col in enumerate(headers)]
         table_body = table.find("tbody")
         rows = table_body.find_all('tr')
         data = []
@@ -40,8 +44,6 @@ def extract_table_data(html_content: str):
 
         return df
 
-data = None
-
 def get_organization_from_url(s_url):
     base_url = "https://www.wahlrecht.de/umfragen/"
     rest = s_url.replace(base_url, "")
@@ -51,19 +53,24 @@ def get_organization_from_url(s_url):
     org_name = org_name.replace('.htm', '').replace('.html', '')
     return org_name
 
+data = None
+
 for url in urls:
+    print("Parsing URL:", url)
     org = get_organization_from_url(url)
 
     html = fetch_html(url)
     # Call the function and print the DataFrame
     df = extract_table_data(html)
     df["org"] = org
-    df["datum"]  = df.index
+    #df.drop(df.columns[1], axis=1,inplace=True)
+    df.rename(columns={df.columns[0]: 'datum'}, inplace=True)
     df = df.reset_index()
     df = df.set_index(['datum', 'org'])
 
-    print(df)
+
     if data is not None:
+        duplicates = df.index.intersection(data.index)
         data= pd.concat([data, df])
     else:
         data = df
