@@ -21,7 +21,7 @@ def extract_table_data(html_content: str):
         table = soup.find('table', class_='wilko')
 
         table_header = table.find("thead")
-        headers = [th.text.strip() for th in table_header.find_all('th')]
+        headers = [th.text.strip() for th in table_header.find_all(['th', 'td'])]
         # handle empty headers
         headers = [f"Unnamed_{i}" if not col else col for i, col in enumerate(headers)]
         table_body = table.find("tbody")
