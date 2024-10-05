@@ -181,3 +181,6 @@ env.bak/
 venv.bak/
 
 requirements.txt
+Sonntagsfrage_wip.pkl
+Sonntagsfrage.pkl
+urls_completed.pkl
