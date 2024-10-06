@@ -88,8 +88,7 @@ def pickle_urls_completed(file_path: str, urls: list):
         pickle.dump(urls, file)
 
     
-if __name__ == "__main__":
-
+def build_archive():
     urls_completed_cache_filename = 'urls_completed.pkl'
     urls_completed = load_urls_completed(urls_completed_cache_filename)
 
@@ -124,3 +123,24 @@ if __name__ == "__main__":
 
     # Optionally, save to CSV
     data.to_pickle('Sonntagsfrage.pkl')
+
+if __name__ == "__main__":
+    
+    if not os.path.exists("Sonntagsfrage.pkl"):
+        build_archive()
+
+
+    data = pd.read_pickle("Sonntagsfrage.pkl")
+    for url in urls_current:
+        org = get_organization_from_url(url)        
+        html = fetch_html(url)
+        # Call the function and print the DataFrame
+        df = extract_table_data(html)
+
+        keys_to_drop = df.index.isin(data.index)
+        df = df[~keys_to_drop]
+        # drop all rows in df where the multiindex key (datum, org) already is in data
+        data = pd.concat(data, df)
+        
+        data.to_pickle('Sonntagsfrage.pkl')
+        print(f"Added {len(df)} new rows for {org}")
