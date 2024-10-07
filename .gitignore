@@ -184,3 +184,6 @@ requirements.txt
 Sonntagsfrage_wip.pkl
 Sonntagsfrage.pkl
 urls_completed.pkl
+/Sonntagsfrage
+/Sonntagsfrage_cleaned.csv
+/Sonntagsfrage_cleaned.pkl

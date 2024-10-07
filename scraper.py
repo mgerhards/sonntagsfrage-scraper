@@ -124,6 +124,11 @@ def build_archive():
     # Optionally, save to CSV
     data.to_pickle('Sonntagsfrage.pkl')
 
+    cols = ['CDU/CSU', 'SPD', 'GRÜNE', 'FDP', 'LINKE', 'AfD', 'FW', 'BSW', 'PDS', 'Rechte', 'PIRATEN', 'Linke.PDS',
+            'REP/DVU', 'REP']
+
+    data[cols].to_pickle("Sonntagsfrage_cleaned.pkl")
+
 if __name__ == "__main__":
     
     if not os.path.exists("Sonntagsfrage.pkl"):
