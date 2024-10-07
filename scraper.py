@@ -89,10 +89,10 @@ def pickle_urls_completed(file_path: str, urls: list):
 
     
 def build_archive():
-    urls_completed_cache_filename = 'urls_completed.pkl'
+    urls_completed_cache_filename = 'cache/urls_completed.pkl'
     urls_completed = load_urls_completed(urls_completed_cache_filename)
 
-    data_cache_filename = 'Sonntagsfrage_wip.pkl'
+    data_cache_filename = 'cache/Sonntagsfrage_wip.pkl'
     data = load_cached_data(data_cache_filename)
     
     for url in list(set(urls) - set(urls_completed)):
@@ -122,12 +122,26 @@ def build_archive():
     print(data)
 
     # Optionally, save to CSV
-    data.to_pickle('Sonntagsfrage.pkl')
+    data.to_pickle('cache/Sonntagsfrage.pkl')
 
-    cols = ['CDU/CSU', 'SPD', 'GRÜNE', 'FDP', 'LINKE', 'AfD', 'FW', 'BSW', 'PDS', 'Rechte', 'PIRATEN', 'Linke.PDS',
+    data_cleaned = clean_data(data)
+
+    data_cleaned.to_pickle("Sonntagsfrage_cleaned.pkl")
+
+
+def clean_data(df):
+    df.reset_index(inplace=True)
+    df['s_datum'] = df['datum']
+    df.loc[:, 'datum'] = pd.to_datetime(df['s_datum'], format='%d.%m.%Y', errors='coerce')
+    df_cleaned = df.dropna(subset=['datum'])
+    df_cleaned.loc[:, 'month'] = df_cleaned['datum'].dt.month
+    df_cleaned.loc[:, 'year'] = df_cleaned['datum'].dt.year
+    df_cleaned.loc[:, 'week_of_year'] = df_cleaned['datum'].dt.isocalendar().week
+    cols = ['datum', 'year', 'month', 'week_of_year', 'org', 'CDU/CSU', 'SPD', 'GRÜNE', 'FDP', 'LINKE', 'AfD', 'FW', 'BSW', 'PDS', 'Rechte', 'PIRATEN', 'Linke.PDS',
             'REP/DVU', 'REP']
+    data_cleaned = df[cols]
+    return data_cleaned
 
-    data[cols].to_pickle("Sonntagsfrage_cleaned.pkl")
 
 if __name__ == "__main__":
     
@@ -135,7 +149,7 @@ if __name__ == "__main__":
         build_archive()
 
 
-#    data = pd.read_pickle("Sonntagsfrage.pkl")
+#    data = pd.read_pickle("cache/Sonntagsfrage.pkl")
 #    for url in urls_current:
 #        org = get_organization_from_url(url)
 #        html = fetch_html(url)
@@ -144,8 +158,9 @@ if __name__ == "__main__":
 #
 #        keys_to_drop = df.index.isin(data.index)
 #        df = df[~keys_to_drop]
+#        df = clean_data(df)
 #        # drop all rows in df where the multiindex key (datum, org) already is in data
 #        data = pd.concat([data, df])
 #
-#        data.to_pickle('Sonntagsfrage.pkl')
+#        data.to_pickle('cache/Sonntagsfrage.pkl')
 #        print(f"Added {len(df)} new rows for {org}")
