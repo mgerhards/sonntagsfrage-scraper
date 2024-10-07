@@ -1,6 +1,6 @@
 import os
 import pickle
-from urls import urls
+from urls import urls, urls_current
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -130,17 +130,17 @@ if __name__ == "__main__":
         build_archive()
 
 
-    data = pd.read_pickle("Sonntagsfrage.pkl")
-    for url in urls_current:
-        org = get_organization_from_url(url)        
-        html = fetch_html(url)
-        # Call the function and print the DataFrame
-        df = extract_table_data(html)
-
-        keys_to_drop = df.index.isin(data.index)
-        df = df[~keys_to_drop]
-        # drop all rows in df where the multiindex key (datum, org) already is in data
-        data = pd.concat(data, df)
-        
-        data.to_pickle('Sonntagsfrage.pkl')
-        print(f"Added {len(df)} new rows for {org}")
+#    data = pd.read_pickle("Sonntagsfrage.pkl")
+#    for url in urls_current:
+#        org = get_organization_from_url(url)
+#        html = fetch_html(url)
+#        # Call the function and print the DataFrame
+#        df = extract_table_data(html)
+#
+#        keys_to_drop = df.index.isin(data.index)
+#        df = df[~keys_to_drop]
+#        # drop all rows in df where the multiindex key (datum, org) already is in data
+#        data = pd.concat([data, df])
+#
+#        data.to_pickle('Sonntagsfrage.pkl')
+#        print(f"Added {len(df)} new rows for {org}")
