@@ -4,6 +4,7 @@ from urls import urls, urls_current
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+import numpy as np
 
 def fetch_html(url: str) -> str:
     if not url:
@@ -107,7 +108,8 @@ def build_archive():
         df.rename(columns={df.columns[0]: 'datum'}, inplace=True)
         df = df.reset_index()
         df = df.set_index(['datum', 'org'])
-
+        # %%
+        df = df.replace(r'^\s*$', np.nan, regex=True)
         if data is not None:
             duplicates = df.index.intersection(data.index)
             data= pd.concat([data, df])
