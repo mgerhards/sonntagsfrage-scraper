@@ -132,16 +132,17 @@ def build_archive():
 
 
 def clean_data(df):
-    df.reset_index(inplace=True)
+    df = df.reset_index()
     df['s_datum'] = df['datum']
-    df.loc[:, 'datum'] = pd.to_datetime(df['s_datum'], format='%d.%m.%Y', errors='coerce')
+    df.loc[:, 'datum'] = pd.to_datetime(df['s_datum'], format='%d.%m.%Y', errors='coerce') 
     df_cleaned = df.dropna(subset=['datum'])
+    df_cleaned['datum'] = pd.to_datetime(df_cleaned['datum'])
     df_cleaned.loc[:, 'month'] = df_cleaned['datum'].dt.month
     df_cleaned.loc[:, 'year'] = df_cleaned['datum'].dt.year
     df_cleaned.loc[:, 'week_of_year'] = df_cleaned['datum'].dt.isocalendar().week
     cols = ['datum', 'year', 'month', 'week_of_year', 'org', 'CDU/CSU', 'SPD', 'GRÜNE', 'FDP', 'LINKE', 'AfD', 'FW', 'BSW', 'PDS', 'Rechte', 'PIRATEN', 'Linke.PDS',
             'REP/DVU', 'REP']
-    data_cleaned = df[cols]
+    data_cleaned = df_cleaned[cols]
     return data_cleaned
 
 
