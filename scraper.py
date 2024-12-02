@@ -7,6 +7,16 @@ import pandas as pd
 import numpy as np
 
 def fetch_html(url: str) -> str:
+    """
+    Fetches the HTML content from the given URL.
+    Args:
+        url (str): The URL to fetch the HTML content from.
+    Returns:
+        str: The HTML content of the response if the request is successful.
+    Raises:
+        ValueError: If the URL is null or empty.
+        None: If there is an error during the request, None is returned and an error message is printed.
+    """
     if not url:
         raise ValueError("The URL must not be null or empty")
 
@@ -20,6 +30,25 @@ def fetch_html(url: str) -> str:
 
 # Function to extract table data
 def extract_table_data(html_content: str) -> pd.DataFrame:
+        """
+        Extracts data from an HTML table and returns it as a Pandas DataFrame.
+        Args:
+            html_content (str): The HTML content containing the table.
+        Returns:
+            pd.DataFrame: A DataFrame containing the extracted table data.
+        The function performs the following steps:
+        1. Parses the HTML content using BeautifulSoup.
+        2. Finds the table with the class 'wilko'.
+        3. Extracts the table headers from the <thead> section.
+        4. Handles empty headers by assigning them a default name.
+        5. Extracts the table rows from the <tbody> section.
+        6. Cleans and processes the cell data, removing unwanted characters.
+        7. Creates a Pandas DataFrame using the extracted data and headers.
+        Note:
+            - The function assumes that the table has a <thead> and <tbody> section.
+            - The function handles empty headers by naming them 'Unnamed_i' where 'i' is the column index.
+            - The function removes certain characters (e.g., '–', '\xa0', '%', ',') from the cell data.
+        """
         soup = BeautifulSoup(html_content, 'html.parser')
         table = soup.find('table', class_='wilko')
 
@@ -90,6 +119,32 @@ def pickle_urls_completed(file_path: str, urls: list):
 
     
 def build_archive():
+    """
+    Builds an archive of data by parsing URLs, extracting table data, and saving the results.
+    This function performs the following steps:
+    1. Loads the list of completed URLs from a cache file.
+    2. Loads cached data from a file.
+    3. Iterates over a set of URLs that have not been completed yet.
+    4. For each URL:
+        a. Prints the URL being parsed.
+        b. Extracts the organization name from the URL.
+        c. Fetches the HTML content of the URL.
+        d. Extracts table data from the HTML content into a DataFrame.
+        e. Adds the organization name to the DataFrame.
+        f. Renames the first column to 'datum'.
+        g. Resets the DataFrame index and sets a new multi-index with 'datum' and 'org'.
+        h. Replaces empty strings with NaN values.
+        i. Concatenates the new DataFrame with existing data if available.
+        j. Saves the updated data to a cache file.
+        k. Appends the URL to the list of completed URLs and updates the cache file.
+    5. Prints the final DataFrame.
+    6. Optionally, saves the final DataFrame to a CSV file.
+    7. Cleans the data and saves the cleaned DataFrame to a file.
+    Note:
+        - The function assumes the existence of helper functions: `load_urls_completed`, `load_cached_data`, 
+          `get_organization_from_url`, `fetch_html`, `extract_table_data`, `pickle_urls_completed`, and `clean_data`.
+        - The function uses the `pandas` library for DataFrame operations and `numpy` for handling NaN values.
+    """
     urls_completed_cache_filename = 'cache/urls_completed.pkl'
     urls_completed = load_urls_completed(urls_completed_cache_filename)
 
@@ -111,7 +166,6 @@ def build_archive():
         # %%
         df = df.replace(r'^\s*$', np.nan, regex=True)
         if data is not None:
-            duplicates = df.index.intersection(data.index)
             data= pd.concat([data, df])
         else:
             data = df
@@ -125,10 +179,9 @@ def build_archive():
 
     # Optionally, save to CSV
     data.to_pickle('cache/Sonntagsfrage.pkl')
-
     data_cleaned = clean_data(data)
-
-    data_cleaned.to_pickle("Sonntagsfrage_cleaned.pkl")
+    data_cleaned.to_pickle("cache/Sonntagsfrage_cleaned.pkl")
+    
 
 
 def clean_data(df):
@@ -140,30 +193,39 @@ def clean_data(df):
     df_cleaned.loc[:, 'month'] = df_cleaned['datum'].dt.month
     df_cleaned.loc[:, 'year'] = df_cleaned['datum'].dt.year
     df_cleaned.loc[:, 'week_of_year'] = df_cleaned['datum'].dt.isocalendar().week
-    cols = ['datum', 'year', 'month', 'week_of_year', 'org', 'CDU/CSU', 'SPD', 'GRÜNE', 'FDP', 'LINKE', 'AfD', 'FW', 'BSW', 'PDS', 'Rechte', 'PIRATEN', 'Linke.PDS',
+    relevant_cols = ['datum', 'year', 'month', 'week_of_year', 'org', 'CDU/CSU', 'SPD', 'GRÜNE', 'FDP', 'LINKE', 'AfD', 'FW', 'BSW', 'PDS', 'Rechte', 'PIRATEN', 'Linke.PDS',
             'REP/DVU', 'REP']
+    # keep only relevant columns if they exist
+    cols = [col for col in relevant_cols if col in df_cleaned.columns]
     data_cleaned = df_cleaned[cols]
     return data_cleaned
 
 
 if __name__ == "__main__":
     
-    if not os.path.exists("Sonntagsfrage.pkl"):
+    if not os.path.exists("cache/Sonntagsfrage_cleaned.pkl"):
         build_archive()
+        
+    data = pd.read_pickle("cache/Sonntagsfrage_cleaned.pkl")
+    for url in urls_current:
+        print("Parsing URL:", url)
+        org = get_organization_from_url(url)
 
-
-#    data = pd.read_pickle("cache/Sonntagsfrage.pkl")
-#    for url in urls_current:
-#        org = get_organization_from_url(url)
-#        html = fetch_html(url)
-#        # Call the function and print the DataFrame
-#        df = extract_table_data(html)
-#
-#        keys_to_drop = df.index.isin(data.index)
-#        df = df[~keys_to_drop]
-#        df = clean_data(df)
-#        # drop all rows in df where the multiindex key (datum, org) already is in data
-#        data = pd.concat([data, df])
-#
-#        data.to_pickle('cache/Sonntagsfrage.pkl')
-#        print(f"Added {len(df)} new rows for {org}")
+        html = fetch_html(url)
+        df = extract_table_data(html)
+        df["org"] = org
+        df.rename(columns={df.columns[0]: 'datum'}, inplace=True)
+        df = df.reset_index()
+        df = df.set_index(['datum', 'org'])
+        df = df.replace(r'^\s*$', np.nan, regex=True)
+        
+        # we add all rows from df to data if data does not contain a row with datum) "date" and org=org
+        if data is not None:
+           unique_indices = df.index.difference(data.index) 
+           df_unique = df.loc[unique_indices]
+           df_unique_cleaned = clean_data(df_unique)           
+           data = pd.concat([data, df_unique_cleaned])
+        else:
+            data = df
+    
+    data.to_pickle('cache/Sonntagsfrage_cleaned.pkl')
